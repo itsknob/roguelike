@@ -7,12 +7,12 @@ use std::cmp::{min, max};
 // pub use components::*;
 mod map;
 pub use map::*;
-// mod player;
-// use player::*;
+mod player;
+use player::*;
 mod rect;
 pub use rect::Rect;
 
-struct State {
+pub struct State {
     ecs: World
 }
 
@@ -64,37 +64,6 @@ pub struct Renderable {
 #[derive(Component)]
 pub struct Player {}
 
-/**
- * Systems
- */
-
-/**
- * Player Logic
- */
-
-fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
-    let mut positions = ecs.write_storage::<Position>();
-    let mut players = ecs.write_storage::<Player>();
-
-    for (_player, pos) in (&mut players, &mut positions).join() {
-        pos.x = min(79 , max(0, pos.x + delta_x));
-        pos.y = min(49 , max(0, pos.y + delta_y));
-    }
-}
-
-fn player_input(gs: &mut State, ctx: &mut Rltk) {
-    // Player movement
-    match ctx.key {
-        None => {} // Nothing Happned
-        Some(key) => match key {
-            VirtualKeyCode::Left => try_move_player(-1, 0, &mut gs.ecs),
-            VirtualKeyCode::Right => try_move_player(1, 0, &mut gs.ecs),
-            VirtualKeyCode::Up => try_move_player(0, -1, &mut gs.ecs),
-            VirtualKeyCode::Down => try_move_player(0, 1, &mut gs.ecs),
-            _ => {}
-        },
-    }
-}
 
 /**
  * Main
@@ -113,9 +82,13 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
 
+    let (rooms, map) = new_map_rooms_and_corridors();
+    gs.ecs.insert(map);
+    let (player_x, player_y) = rooms[0].center();
+
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 25 })
+        .with(Position { x: player_x, y: player_y })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
