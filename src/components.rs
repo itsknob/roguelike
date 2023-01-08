@@ -7,3 +7,6 @@ pub struct Viewshed {
     pub range: i32,
     pub dirty: bool
 }
+
+#[derive(Component, Debug)]
+pub struct Monster {}
